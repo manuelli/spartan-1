@@ -27,10 +27,13 @@ def monitor_gelsight():
     rospy.init_node("gelsight_reader_node")
     pub = rospy.Publisher("/stop", std_msgs.msg.Bool, queue_size=10)
 
-    for i in xrange(1000):
+    flag = False
+    for i in xrange(400):
         ret, frame = cap.read()
         frame = np.array(frame).astype(np.float)
         print frame.shape
+
+        cv2.imwrite("gelsight/frame_" + str(i) + ".jpg", frame)
 
         if i == 0:
             ref = frame
@@ -40,9 +43,13 @@ def monitor_gelsight():
             print "#%d" % i, diff
             if diff > threshold:
                 rospy.loginfo("Gelsight in contact #%d" % i)
-                pub.publish(True)
-                time.sleep(0.01)
-                pub.publish(False)
+                if flag == False:
+                    flag = True
+                    pub.publish(True)
+                    time.sleep(0.01)
+                    pub.publish(False)
+            else:
+                flag = False
 
 
 if __name__ == '__main__':
