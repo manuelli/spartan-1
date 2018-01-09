@@ -84,6 +84,11 @@ class TouchSupervisor(object):
         self.touchToIiwaLinkEE = spartanUtils.transformFromPose(params['touch']['touch_to_ee'])
         self.iiwaLinkEEToTouchFrame = self.touchToIiwaLinkEE.GetLinearInverse()
 
+        pos = [-0.15, 0, 0]
+        quat = [1, 0, 0, 0]
+        self.preTouchToTouchTransform = transformUtils.transformFromPose(pos, quat)
+
+
     def setupSubscribers(self):
         self.pointCloudSubscriber = spartanROSUtils.SimpleSubscriber(self.pointCloudTopic, sensor_msgs.msg.PointCloud2)
         self.pointCloudSubscriber.start()
@@ -230,7 +235,7 @@ class TouchSupervisor(object):
     '''
     touch related functions
     '''
-    def requestTouch(self):
+    def requestTouch(self, touch_point):
         # request the touch via a ROS Action
         rospy.loginfo("waiting for spartan touch server")
         self.generate_touches_client.wait_for_server()
@@ -241,9 +246,9 @@ class TouchSupervisor(object):
         goal.point_clouds = self.pointCloudListMsg
 
         # predefine the touch point for now
-        goal.touch_point.touch_point.x = 0.6
-        goal.touch_point.touch_point.y = 0.0
-        goal.touch_point.touch_point.z = 0.5
+        goal.touch_point.touch_point.x = touch_point[0]
+        goal.touch_point.touch_point.y = touch_point[1]
+        goal.touch_point.touch_point.z = touch_point[2]
 
         if 'touch_volume' in params:
             node = params['touch_volume']
@@ -275,7 +280,7 @@ class TouchSupervisor(object):
         print "num scored_touches = ", len(result.scored_touches)
         if len(result.scored_touches) == 0:
             rospy.loginfo("no valid touches found")
-            return false
+            return False
 
         self.topTouch = result.scored_touches[0]
         rospy.loginfo("-------- top touch score = %.3f", self.topTouch.score)
@@ -291,7 +296,7 @@ class TouchSupervisor(object):
             touchFrame.PreMultiply()
             touchFrame.RotateX(180)
 
-    def attemptTouch(self, touchFrame):
+    def attemptTouch(self):
         preTouchFrame = transformUtils.concatenateTransforms([self.preTouchToTouchTransform, self.touchFrame])
 
         params = self.touchParams
@@ -303,7 +308,7 @@ class TouchSupervisor(object):
             rospy.loginfo("pre touch pose ik failed, returning")
             return False
 
-        touchFramePoseStamped = self.makePoseStampedFromTouchFrame(touchFrame)
+        touchFramePoseStamped = self.makePoseStampedFromTouchFrame(self.touchFrame)
         preTouchPose = preTouch_ik_response.joint_state.position
 
         touch_ik_response = self.robotService.runIK(touchFramePoseStamped, seedPose=preTouchPose, nominalPose=preTouchPose)
@@ -316,7 +321,6 @@ class TouchSupervisor(object):
 
         # store for future use
         self.preTouchFrame = preTouchFrame
-        self.touchFrame = touchFrame
         self.robotService.moveToJointPosition(preTouchPose, maxJointDegreesPerSecond=params['speed']['pre_touch'])
         self.robotService.moveToJointPosition(touchPose, maxJointDegreesPerSecond=params['speed']['touch'])
 
@@ -363,21 +367,26 @@ class TouchSupervisor(object):
     def testCollectSensorData(self):
         self.collectSensorData()
 
-    def testCollectSensorDataAndGenerateTouches(self):
-        self.collectSensorData()
-        self.requestTouch()
-        # self.moveHome()
-        result = self.waitForGenerateTouchesResult()
-        self.processGenerateTouchesResult(result)
+    def testCollectSensorDataAndGenerateTouches(self, touch_points):
+        for touch_point in touch_points:
+            self.collectSensorData()
+            self.requestTouch(touch_point)
+            self.moveHome()
+            result = self.waitForGenerateTouchesResult()
+            self.processGenerateTouchesResult(result)
 
-    def testPlanAndTouchObject(self):
-        self.collectSensorData()
-        self.requestTouch()
-        self.moveHome()
-        result = self.waitForGenerateTouchesResult()
-        self.processGenerateTouchesResult(result)
+    def testAttemptTouch(self):
         self.attemptTouch()
-        self.moveHome()
+
+    def testPlanAndTouchObject(self, touch_points):
+        for touch_point in touch_points:
+            self.collectSensorData()
+            self.requestTouch(touch_point)
+            self.moveHome()
+            result = self.waitForGenerateTouchesResult()
+            self.processGenerateTouchesResult(result)
+            self.attemptTouch()
+            self.moveHome()
 
 
 def main():
@@ -386,8 +395,14 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
+    touch_point_0 = np.array([0.6, 0.0, 0.5])
+    touch_point_1 = np.array([0.6, 0.2, 0.5])
+    touch_points = [touch_point_1] # , touch_point_1]
+
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
-    touchSupervisor.testCollectSensorDataAndGenerateTouches()
+    # touchSupervisor.testCollectSensorDataAndGenerateTouches()
+    # touchSupervisor.testAttemptTouch()
+    touchSupervisor.testPlanAndTouchObject(touch_points)
 
     # rospy.spin()
 
