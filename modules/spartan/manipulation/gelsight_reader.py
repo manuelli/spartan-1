@@ -6,10 +6,10 @@ import os
 import time
 
 
-threshold = 5
+threshold = 4
 
 def monitor_gelsight():
-    cap = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture(0)
     cap.set(3, 640)
     cap.set(4, 480)
 

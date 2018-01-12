@@ -395,14 +395,14 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
-    touch_point_0 = np.array([0.6, 0.0, 0.5])
-    touch_point_1 = np.array([0.6, 0.2, 0.5])
+    touch_point_0 = np.array([0.7, 0.0, 0.3])
+    touch_point_1 = np.array([0.7, -0.2, 0.3])
     touch_points = [touch_point_0, touch_point_1]
 
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
-    # touchSupervisor.testCollectSensorDataAndGenerateTouches()
+    touchSupervisor.testCollectSensorDataAndGenerateTouches(touch_points)
     # touchSupervisor.testAttemptTouch()
-    touchSupervisor.testPlanAndTouchObject(touch_points)
+    # touchSupervisor.testPlanAndTouchObject(touch_points)
 
     # rospy.spin()
 
