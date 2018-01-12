@@ -397,7 +397,7 @@ def main():
 
     touch_point_0 = np.array([0.6, 0.0, 0.5])
     touch_point_1 = np.array([0.6, 0.2, 0.5])
-    touch_points = [touch_point_1] # , touch_point_1]
+    touch_points = [touch_point_0, touch_point_1]
 
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
     # touchSupervisor.testCollectSensorDataAndGenerateTouches()

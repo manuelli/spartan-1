@@ -28,12 +28,12 @@ def monitor_gelsight():
     pub = rospy.Publisher("/stop", std_msgs.msg.Bool, queue_size=10)
 
     flag = False
-    for i in xrange(400):
+    for i in xrange(500):
         ret, frame = cap.read()
         frame = np.array(frame).astype(np.float)
         print frame.shape
 
-        cv2.imwrite("gelsight/frame_" + str(i) + ".jpg", frame)
+        # cv2.imwrite("gelsight/frame_" + str(i) + ".jpg", frame)
 
         if i == 0:
             ref = frame
