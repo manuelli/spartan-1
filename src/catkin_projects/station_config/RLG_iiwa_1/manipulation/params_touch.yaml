@@ -70,7 +70,7 @@ collision_objects:
 speed:
   scan: 20
   pre_touch: 10
-  touch: 3
+  touch: 2
   nominal: 10
   fast: 20
   slow: 5
