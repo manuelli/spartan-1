@@ -14,7 +14,7 @@ poses:
 scan_pose_list: ["scan_left", "scan_right"]
 
 touch:
-  touch_nominal_direction: [1,0,0]
+  touch_nominal_direction: [1, 0, 0]
   touch_to_ee:
     orientation:
       w: 0.97921432
