@@ -246,9 +246,9 @@ class TouchSupervisor(object):
         goal.point_clouds = self.pointCloudListMsg
 
         # predefine the touch point for now
-        goal.touch_point.touch_point.x = touch_point[0]
-        goal.touch_point.touch_point.y = touch_point[1]
-        goal.touch_point.touch_point.z = touch_point[2]
+        goal.touch_point.x = touch_point[0]
+        goal.touch_point.y = touch_point[1]
+        goal.touch_point.z = touch_point[2]
 
         if 'touch_volume' in params:
             node = params['touch_volume']
@@ -395,9 +395,9 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
-    touch_point_0 = np.array([0.7, 0.0, 0.3])
-    touch_point_1 = np.array([0.7, -0.2, 0.3])
-    touch_points = [touch_point_0, touch_point_1]
+    touch_point_0 = np.array([0.61, -0.06, 0.2])
+    # touch_point_1 = np.array([0.7, -0.2, 0.3])
+    touch_points = [touch_point_0] #, touch_point_1]
 
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
     touchSupervisor.testCollectSensorDataAndGenerateTouches(touch_points)
