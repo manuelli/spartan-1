@@ -35,3 +35,7 @@
 [submodule "src/catkin_projects/spartan_touch_msgs"]
 	path = src/catkin_projects/spartan_touch_msgs
 	url = https://github.com/YunzhuLi/spartan_touch_msgs.git
+[submodule "yunzhu/ElasticFusion"]
+	path = yunzhu/ElasticFusion
+	url = https://github.com/YunzhuLi/ElasticFusion.git
+	branch = pf-rosbagreader
