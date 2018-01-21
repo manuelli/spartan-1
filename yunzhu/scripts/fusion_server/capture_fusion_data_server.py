@@ -32,7 +32,7 @@ class FusionServer(object):
 	def __init__(self):
 		self.bagging = False
 		self.rosbag_proc = None
-		storedPosesFile = os.path.join(spartanUtils.getSpartanSourceDir(), 'src', 'catkin_projects', 'station_config','RLG_iiwa_1','stored_poses.yaml')
+		storedPosesFile = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'config', 'params_touch.yaml')
 		self.storedPoses = spartanUtils.getDictFromYamlFilename(storedPosesFile)
 		self.robotService = rosUtils.RobotService(self.storedPoses['header']['joint_names'])
 		self.setupConfig()
@@ -41,7 +41,7 @@ class FusionServer(object):
 		self.config = dict()
 		self.config['scan'] = dict()
 		self.config['scan']['pose_list'] = ['scan_back', 'scan_left', 'scan_top', 'scan_right', 'scan_back']
-		self.config['scan']['joint_speed'] = 40
+		self.config['scan']['joint_speed'] = 20
 		self.config['home_pose_name'] = 'above_table_pre_grasp'
 
 	def start_bagging(self):
@@ -103,7 +103,7 @@ class FusionServer(object):
 
 	def handle_perform_elastic_fusion(self, req):
 		## call executable for filename
-		cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/src/ElasticFusion/GUI/build/ElasticFusion -l " + req.bag_filepath
+		cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -q -l " + req.bag_filepath
 		os.system("echo " + cmd)
 		os.system(cmd)
 		return PerformElasticFusionResponse("need to merge auto-output pointcloud.vtp and return it here")
@@ -119,7 +119,7 @@ class FusionServer(object):
 
 		# Move robot around
 		for poseName in self.config['scan']['pose_list']:
-			joint_positions = self.storedPoses[poseName]
+			joint_positions = self.storedPoses['poses'][poseName]
 			self.robotService.moveToJointPosition(joint_positions, maxJointDegreesPerSecond=self.config['scan']['joint_speed'])
 
 
