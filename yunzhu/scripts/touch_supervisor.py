@@ -240,6 +240,14 @@ class TouchSupervisor(object):
     '''
     Elastic Fusion
     '''
+    def convert_ply_to_pointcloud2(self, plydata):
+
+        cloud_arr = np.zeros((len(plydata.elements[0].data), 3))
+        for i in xrange(len(plydata.elements[0].data)):
+            cloud_arr[i] = list(plydata.elements[0].data[i])[:3]
+
+        return array_to_xyz_pointcloud2f(cloud_arr)
+
     def captureCameraTransform(self, cameraOrigin=[0, 0, 0]):
         msg = spartan_touch_msgs.msg.PointCloudWithTransform()
         msg.header.stamp = rospy.Time.now()
@@ -256,7 +264,7 @@ class TouchSupervisor(object):
         pointCloudListMsg = spartan_touch_msgs.msg.PointCloudList()
         pointCloudListMsg.header.stamp = rospy.Time.now()
 
-        pointCloudWithTransformMsg = captureCameraTransform()
+        pointCloudWithTransformMsg = self.captureCameraTransform()
 
         # capture scene and do elastic fusion
         rospy.loginfo("Waiting for 'capture_scene_and_fuse' service...")
@@ -270,7 +278,7 @@ class TouchSupervisor(object):
         except rospy.ServiceException, e:
             print "Service call failed: %s" % e
 
-        pointCloudWithTransformMsg.point_cloud = convert_ply_to_pointcloud2(PlyData.read(plyFilename))
+        pointCloudWithTransformMsg.point_cloud = self.convert_ply_to_pointcloud2(PlyData.read(plyFilename))
         pointCloudListMsg.point_cloud_list.append(pointCloudWithTransformMsg)
 
         self.pointCloudListMsg = pointCloudListMsg
@@ -393,9 +401,7 @@ class TouchSupervisor(object):
     @staticmethod
     def makeDefault(**kwargs):
         touchParamsFile = os.path.join(spartanUtils.getSpartanSourceDir(),
-                                       'src', 'catkin_projects',
-                                       'station_config', 'RLG_iiwa_1',
-                                       'manipulation', 'params_touch.yaml')
+                                       'yunzhu', 'config', 'params_touch.yaml')
         return TouchSupervisor(touchParamsFile=touchParamsFile, **kwargs)
 
 
@@ -416,7 +422,8 @@ class TouchSupervisor(object):
     def testCollectSensorDataAndGenerateTouches(self, touch_points):
         for touch_point in touch_points:
             self.moveHome()
-            self.collectSensorData()
+            self.collectSensorDataAndFuse()
+            # self.collectSensorData()
             self.requestTouch(touch_point)
             self.moveHome()
             result = self.waitForGenerateTouchesResult()
@@ -442,7 +449,7 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
-    touch_point_0 = np.array([0.61, -0.06, 0.2])
+    touch_point_0 = np.array([0.61, -0.15, 0.2])
     # touch_point_1 = np.array([0.7, -0.2, 0.3])
     touch_points = [touch_point_0] #, touch_point_1]
 
