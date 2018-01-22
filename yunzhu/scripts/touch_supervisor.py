@@ -11,12 +11,14 @@ import tf2_ros
 import rosbag
 import actionlib
 from tf.transformations import quaternion_from_euler
+from fusion_server.srv import *
+from numpy_pc2 import array_to_xyz_pointcloud2f
 
 # spartan ROS
 import spartan_touch_msgs.msg
 import spartan_touch_msgs.srv
 
-#spartan
+# spartan
 import spartan.utils.utils as spartanUtils
 import spartan.utils.ros_utils as spartanROSUtils
 
@@ -26,6 +28,9 @@ from director import transformUtils
 # LCM
 import lcm
 from robotlocomotion import robot_plan_t
+
+# ply reader
+from plyfile import PlyData, PlyElement
 
 
 class TFWrapper(object):
@@ -233,6 +238,47 @@ class TouchSupervisor(object):
 
 
     '''
+    Elastic Fusion
+    '''
+    def captureCameraTransform(self, cameraOrigin=[0, 0, 0]):
+        msg = spartan_touch_msgs.msg.PointCloudWithTransform()
+        msg.header.stamp = rospy.Time.now()
+
+        msg.camera_origin.x = cameraOrigin[0]
+        msg.camera_origin.y = cameraOrigin[1]
+        msg.camera_origin.z = cameraOrigin[2]
+
+        msg.point_cloud_to_base_transform = self.getDepthOpticalFrameToTouchFrameTransform()
+
+        return msg
+
+    def collectSensorDataAndFuse(self):
+        pointCloudListMsg = spartan_touch_msgs.msg.PointCloudList()
+        pointCloudListMsg.header.stamp = rospy.Time.now()
+
+        pointCloudWithTransformMsg = captureCameraTransform()
+
+        # capture scene and do elastic fusion
+        rospy.loginfo("Waiting for 'capture_scene_and_fuse' service...")
+        rospy.wait_for_service('capture_scene_and_fuse')
+        rospy.loginfo("Found it!, starting capture...")
+
+        try:
+            capture_scene_and_fuse = rospy.ServiceProxy('capture_scene_and_fuse', CaptureSceneAndFuse)
+            resp1 = capture_scene_and_fuse()
+            plyFilename = resp1.pointcloud_filepath
+        except rospy.ServiceException, e:
+            print "Service call failed: %s" % e
+
+        pointCloudWithTransformMsg.point_cloud = convert_ply_to_pointcloud2(PlyData.read(plyFilename))
+        pointCloudListMsg.point_cloud_list.append(pointCloudWithTransformMsg)
+
+        self.pointCloudListMsg = pointCloudListMsg
+
+        return pointCloudListMsg
+
+
+    '''
     touch related functions
     '''
     def requestTouch(self, touch_point):
@@ -331,7 +377,7 @@ class TouchSupervisor(object):
     '''
     def moveHome(self):
         rospy.loginfo("moving home")
-        homePose = self.touchParams['poses']['above_table_pre_touch']
+        homePose = self.touchParams['poses']['scan_back']
         self.robotService.moveToJointPosition(homePose, maxJointDegreesPerSecond=self.touchParams['speed']['nominal'])
 
     def exploreObject(self, homePose, touchPoses):
@@ -369,6 +415,7 @@ class TouchSupervisor(object):
 
     def testCollectSensorDataAndGenerateTouches(self, touch_points):
         for touch_point in touch_points:
+            self.moveHome()
             self.collectSensorData()
             self.requestTouch(touch_point)
             self.moveHome()
@@ -403,8 +450,6 @@ def main():
     touchSupervisor.testCollectSensorDataAndGenerateTouches(touch_points)
     # touchSupervisor.testAttemptTouch()
     # touchSupervisor.testPlanAndTouchObject(touch_points)
-
-    # rospy.spin()
 
 
 if __name__ == "__main__":
