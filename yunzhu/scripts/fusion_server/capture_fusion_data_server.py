@@ -27,7 +27,7 @@ def terminate_ros_node(s):
 			os.system("rosnode kill " + str)
 
 
-class FusionServer(object): 
+class FusionServer(object):
 
 	def __init__(self):
 		self.bagging = False
@@ -106,7 +106,7 @@ class FusionServer(object):
 		cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -q -l " + req.bag_filepath
 		os.system("echo " + cmd)
 		os.system(cmd)
-		return PerformElasticFusionResponse("need to merge auto-output pointcloud.vtp and return it here")
+		return PerformElasticFusionResponse(req.bag_filepath + ".ply")
 
 	def handle_capture_scene_and_fuse(self, req):
 		# Start bagging with own srv call
@@ -118,6 +118,7 @@ class FusionServer(object):
 			print "Service call failed: %s"%e
 
 		# Move robot around
+        time.sleep(1.0)
 		for poseName in self.config['scan']['pose_list']:
 			joint_positions = self.storedPoses['poses'][poseName]
 			self.robotService.moveToJointPosition(joint_positions, maxJointDegreesPerSecond=self.config['scan']['joint_speed'])

@@ -137,6 +137,11 @@ group "8.ROS" {
     host = "localhost";
   }
 
+  cmd "8.Fusion Server" {
+    exec = "python $SPARTAN_SOURCE_DIR/yunzhu/scripts/fusion_server/capture_fusion_data_server.py";
+    host = "localhost";
+  }
+
 }
 
 group "9.Calibration" {
