@@ -103,7 +103,7 @@ class FusionServer(object):
 
     def handle_perform_elastic_fusion(self, req):
         ## call executable for filename
-        cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -q -l " + req.bag_filepath
+        cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -t 800 -q -l " + req.bag_filepath
         os.system("echo " + cmd)
         os.system(cmd)
         return PerformElasticFusionResponse(req.bag_filepath + ".ply")

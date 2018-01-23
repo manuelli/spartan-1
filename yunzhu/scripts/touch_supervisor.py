@@ -62,6 +62,7 @@ class TouchSupervisor(object):
         self.pointCloudTopic = '/' + str(self.cameraName) + '/depth/points'
         self.touchFrameName = 'base'
         self.depthOpticalFrameName = self.cameraName + "_depth_optical_frame"
+        self.rgbOpticalFrameName = self.cameraName + "_rgb_optical_frame"
 
         self.robotService = spartanROSUtils.RobotService.makeKukaRobotService()
         self.tfBuffer = tfBuffer
@@ -248,7 +249,15 @@ class TouchSupervisor(object):
 
         return array_to_xyz_pointcloud2f(cloud_arr)
 
+    def getRgbOpticalFrameToTouchFrameTransform(self):
+        rgbOpticalFrameToTouchFrame = self.tfBuffer.lookup_transform(self.touchFrameName, self.rgbOpticalFrameName, rospy.Time(0))
+        print rgbOpticalFrameToTouchFrame
+        return rgbOpticalFrameToTouchFrame
+
     def captureCameraTransform(self, cameraOrigin=[0, 0, 0]):
+
+        rospy.sleep(0.5)
+
         msg = spartan_touch_msgs.msg.PointCloudWithTransform()
         msg.header.stamp = rospy.Time.now()
 
@@ -256,7 +265,11 @@ class TouchSupervisor(object):
         msg.camera_origin.y = cameraOrigin[1]
         msg.camera_origin.z = cameraOrigin[2]
 
-        msg.point_cloud_to_base_transform = self.getDepthOpticalFrameToTouchFrameTransform()
+        msg.point_cloud_to_base_transform = self.getRgbOpticalFrameToTouchFrameTransform()
+
+        # hack to get the correct pose
+        msg.point_cloud_to_base_transform.transform.translation.x += 0.06
+        msg.point_cloud_to_base_transform.transform.translation.y += 0.055
 
         return msg
 
@@ -449,7 +462,7 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
-    touch_point_0 = np.array([0.61, -0.15, 0.2])
+    touch_point_0 = np.array([0.61, -0.05, 0.5])
     # touch_point_1 = np.array([0.7, -0.2, 0.3])
     touch_points = [touch_point_0] #, touch_point_1]
 
