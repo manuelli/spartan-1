@@ -447,7 +447,8 @@ class TouchSupervisor(object):
 
     def testPlanAndTouchObject(self, touch_points):
         for touch_point in touch_points:
-            self.collectSensorData()
+            # self.collectSensorData()
+            self.collectSensorDataAndFuse()
             self.requestTouch(touch_point)
             self.moveHome()
             result = self.waitForGenerateTouchesResult()
@@ -462,13 +463,13 @@ def main():
     tfWrapper = TFWrapper()
     tfBuffer = tfWrapper.getBuffer()
 
-    touch_point_0 = np.array([0.61, -0.05, 0.5])
+    touch_point_0 = np.array([0.61, -0.15, 0.5])
     # touch_point_1 = np.array([0.7, -0.2, 0.3])
     touch_points = [touch_point_0] #, touch_point_1]
 
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
     touchSupervisor.testCollectSensorDataAndGenerateTouches(touch_points)
-    # touchSupervisor.testAttemptTouch()
+    touchSupervisor.testAttemptTouch()
     # touchSupervisor.testPlanAndTouchObject(touch_points)
 
 

@@ -103,7 +103,7 @@ class FusionServer(object):
 
     def handle_perform_elastic_fusion(self, req):
         ## call executable for filename
-        cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -t 900 -q -l " + req.bag_filepath
+        cmd = ". /opt/ros/kinetic/setup.sh && $SPARTAN_SOURCE_DIR/yunzhu/ElasticFusion/GUI/build/ElasticFusion -t 900 -d 1.5 -q -l " + req.bag_filepath
         os.system("echo " + cmd)
         os.system(cmd)
         return PerformElasticFusionResponse(req.bag_filepath + ".ply")
@@ -122,8 +122,6 @@ class FusionServer(object):
         for poseName in self.config['scan']['pose_list']:
             joint_positions = self.storedPoses['poses'][poseName]
             self.robotService.moveToJointPosition(joint_positions, maxJointDegreesPerSecond=self.config['scan']['joint_speed'])
-            time.sleep(0.5)
-
 
         # Stop bagging with own srv call
         try:
