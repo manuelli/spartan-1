@@ -268,8 +268,8 @@ class TouchSupervisor(object):
         msg.point_cloud_to_base_transform = self.getRgbOpticalFrameToTouchFrameTransform()
 
         # hack to get the correct pose
-        msg.point_cloud_to_base_transform.transform.translation.x += 0.06
-        msg.point_cloud_to_base_transform.transform.translation.y += 0.055
+        # msg.point_cloud_to_base_transform.transform.translation.x += 0.06
+        # msg.point_cloud_to_base_transform.transform.translation.y += 0.055
 
         return msg
 
