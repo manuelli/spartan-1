@@ -9,6 +9,7 @@ import geometry_msgs.msg
 import std_msgs.msg
 import tf2_ros
 import rosbag
+import subprocess
 import actionlib
 from tf.transformations import quaternion_from_euler
 from fusion_server.srv import *
@@ -363,7 +364,21 @@ class TouchSupervisor(object):
             touchFrame.PreMultiply()
             touchFrame.RotateX(180)
 
-    def attemptTouch(self):
+    def start_external_force_monitor():
+        monitor_script_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'scripts', 'external_force_monitor.py')
+        cmd = "python " + monitor_script_name
+        self.external_force_monitor_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+    def stop_external_force_monitor(s='/external_force_monitor'):
+        list_cmd = subprocess.Popen("rosnode list", shell=True, stdout=subprocess.PIPE)
+        list_output = list_cmd.stdout.read()
+        retcode = list_cmd.wait()
+        assert retcode == 0, "List command returned %d" % retcode
+        for str in list_output.split("\n"):
+            if (str.startswith(s)):
+                os.system("rosnode kill " + str)
+
+    def solveIK(self):
         preTouchFrame = transformUtils.concatenateTransforms([self.preTouchToTouchTransform, self.touchFrame])
 
         params = self.touchParams
@@ -376,7 +391,7 @@ class TouchSupervisor(object):
             return False
 
         touchFramePoseStamped = self.makePoseStampedFromTouchFrame(self.touchFrame)
-        preTouchPose = preTouch_ik_response.joint_state.position
+        self.preTouchPose = preTouch_ik_response.joint_state.position
 
         touch_ik_response = self.robotService.runIK(touchFramePoseStamped, seedPose=preTouchPose, nominalPose=preTouchPose)
 
@@ -384,12 +399,16 @@ class TouchSupervisor(object):
             rospy.loginfo("touch pose not reachable, returning")
             return False
 
-        touchPose = touch_ik_response.joint_state.position
+        self.touchPose = touch_ik_response.joint_state.position
 
-        # store for future use
-        self.preTouchFrame = preTouchFrame
-        self.robotService.moveToJointPosition(preTouchPose, maxJointDegreesPerSecond=params['speed']['pre_touch'])
-        self.robotService.moveToJointPosition(touchPose, maxJointDegreesPerSecond=params['speed']['touch'])
+        return True
+
+    def attemptTouch(self):
+        self.robotService.moveToJointPosition(self.preTouchPose, maxJointDegreesPerSecond=params['speed']['pre_touch'])
+
+        self.start_external_force_monitor()
+        self.robotService.moveToJointPosition(self.touchPose, maxJointDegreesPerSecond=params['speed']['touch'])
+        self.stop_external_force_monitor()
 
         return True
 
