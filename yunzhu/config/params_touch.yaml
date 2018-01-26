@@ -23,7 +23,7 @@ touch:
       y: 0.00454233
       z: -0.00107904
     translation:
-      x: 0.1
+      x: 0.05
       y: 0
       z: 0
 
@@ -69,9 +69,9 @@ collision_objects:
 
 
 speed:
-  scan: 20
-  pre_touch: 10
+  scan: 30
+  pre_touch: 25
   touch: 2
-  nominal: 10
+  nominal: 30
   fast: 20
   slow: 5

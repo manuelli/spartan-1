@@ -4,6 +4,10 @@ import sys
 import numpy as np
 import subprocess
 
+# ros
+import rospy
+import tf2_ros
+
 # spartan
 import spartan.utils.utils as spartanUtils
 
@@ -32,8 +36,11 @@ class TFWrapper(object):
         return self.tfBuffer
 
 
-def select_touch_point():
-    return np.array([0.61, -0.15, 0.5])
+def select_touch_point(idx):
+    if idx == 0:
+        return np.array([0.61, -0.15, 0.5])
+    else:
+        return np.array([0.55, -0.3, 0.1])
 
 
 def main():
@@ -50,7 +57,7 @@ def main():
         touchSupervisor.moveHome()
 
         while True:
-            touch_point = select_touch_point()
+            touch_point = select_touch_point(idx)
             valid_touch_frame = touchSupervisor.requestTouch(touch_point)
             result = touchSupervisor.waitForGenerateTouchesResult()
 
@@ -69,7 +76,7 @@ def main():
             break
 
         touchSupervisor.moveHome()
-
+        touchSupervisor.moveHome()
 
 
 if __name__ == "__main__":
