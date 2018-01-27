@@ -4,6 +4,9 @@ import sys
 import numpy as np
 import subprocess
 
+# image processing
+from skimage.measure import compare_ssim as ssim
+
 # ros
 import rospy
 import tf2_ros
@@ -75,7 +78,6 @@ def main():
 
             break
 
-        touchSupervisor.moveHome()
         touchSupervisor.moveHome()
 
 

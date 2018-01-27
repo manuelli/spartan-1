@@ -5,22 +5,18 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 
-diff_threshold = 6
+diff_threshold = 5
 
 
 class ExternalForceMonitor(object):
 
     def __init__(self, diff_threshold):
-        self.pub = rospy.Publisher("/stop", std_msgs.msg.Bool, queue_size=10)
-        rospy.Subscriber("/stop", std_msgs.msg.Bool, self.encounter_stop_signal)
-        rospy.Subscriber("/joint_states", sensor_msgs.msg.JointState, self.callback)
+        self.pub = rospy.Publisher("/stop", std_msgs.msg.Bool, queue_size=2)
+        rospy.Subscriber("/joint_states", sensor_msgs.msg.JointState,
+                         self.callback, queue_size=1)
         self.first_time = True
         self.diff_threshold = diff_threshold
         self.sent_signal = False
-
-    def encounter_stop_signal(self, msg):
-        if msg.data:
-            self.sent_signal = True
 
     def callback(self, msg):
         self.external_force = np.array(list(msg.effort))
@@ -45,6 +41,8 @@ class ExternalForceMonitor(object):
 
 if __name__ == '__main__':
 
+    # wait for a while before start monitoring the external force due to the
+    # influence of the shunk haven't been accounted in the model
     time.sleep(1.0)
 
     rospy.init_node('external_force_monitor')

@@ -21,7 +21,6 @@ class GelsightMonitor(object):
 
     def __init__(self, num_record, idx):
         self.num_record = num_record
-        self.threshold = 5
         self.idx = idx
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3, 640)
@@ -37,10 +36,6 @@ class GelsightMonitor(object):
 
         print self.frame_width, self.frame_height
 
-        rospy.init_node("gelsight_reader_node")
-        self.pub = rospy.Publisher("/stop", std_msgs.msg.Bool, queue_size=10)
-
-        self.sent_signal = False
 
     def start(self):
 
@@ -55,19 +50,6 @@ class GelsightMonitor(object):
             # print frame.shape
 
             cv2.imwrite(rec_dir_name + "/frame_" + str(i) + ".jpg", frame)
-
-            if i == 0:
-                ref = frame
-                cv2.imwrite("gelsight_ref.png", ref)
-            else:
-                diff = np.average(np.abs(ref - frame))
-                # print "#%d" % i, diff
-                if not self.sent_signal and diff > self.threshold:
-                    rospy.loginfo("Gelsight in contact #%d" % i)
-                    self.sent_signal = True
-                    self.pub.publish(True)
-                    time.sleep(0.01)
-                    self.pub.publish(False)
 
 
 if __name__ == '__main__':
