@@ -31,3 +31,8 @@ pip install numpy scipy pyassimp pyglet
 
 # Tools for process plyfile
 pip install plyfile
+
+# python skimage
+sudo apt-get install python-skimage
+
+
