@@ -365,11 +365,13 @@ class TouchSupervisor(object):
             touchFrame.RotateX(180)
 
     def start_external_force_monitor(self):
+        print "Start external force monitor"
         monitor_script_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'scripts', 'external_force_monitor.py')
         cmd = "python " + monitor_script_name
         self.external_force_monitor_proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
     def stop_external_force_monitor(self, s='/external_force_monitor'):
+        print "End external force monitor"
         list_cmd = subprocess.Popen("rosnode list", shell=True, stdout=subprocess.PIPE)
         list_output = list_cmd.stdout.read()
         retcode = list_cmd.wait()

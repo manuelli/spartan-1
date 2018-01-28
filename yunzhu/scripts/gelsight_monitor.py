@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import os
 import time
+import datetime
 
 # opencv
 import cv2
@@ -15,44 +16,45 @@ import std_msgs.msg
 import spartan.utils.utils as spartanUtils
 
 
-num_record = 600
-
 class GelsightMonitor(object):
 
-    def __init__(self, num_record, idx):
-        self.num_record = num_record
+    def __init__(self, idx, num_record):
+        self.num_record = int(num_record)
         self.idx = idx
         self.cap = cv2.VideoCapture(0)
-        self.cap.set(3, 640)
-        self.cap.set(4, 480)
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        print "FPS:", self.fps
+        self.cap.set(3, 960)
+        self.cap.set(4, 720)
 
         if(self.cap.isOpened() == False):
-            print "Unable to read camera feed"
-
-        self.frame_width = int(self.cap.get(3))
-        self.frame_height = int(self.cap.get(4))
-
-        print self.frame_width, self.frame_height
-
-
-    def start(self):
+            print "Unable to read GelSight feed"
 
         rec_dir_name = os.path.join(spartanUtils.getSpartanSourceDir(),
                                     'yunzhu', 'data', 'gelsight_rec',
                                     'gelsight_rec_' + self.idx)
         os.system("mkdir -p " + rec_dir_name)
 
+        rec_name = os.path.join(rec_dir_name, 'gelsight_rec_' +
+                                str(datetime.datetime.now()))
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.out = cv2.VideoWriter(rec_name + '.avi', fourcc, 20.0, (960, 720))
+
+
+    def record(self):
         for i in xrange(self.num_record):
             ret, frame = self.cap.read()
-            frame = np.array(frame).astype(np.float)
-            # print frame.shape
+            self.out.write(frame)
 
-            cv2.imwrite(rec_dir_name + "/frame_" + str(i) + ".jpg", frame)
+
+    def clean(self):
+        self.cap.release()
+        self.out.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    gelsight_monitor = GelsightMonitor(num_record, sys.argv[1])
-    gelsight_monitor.start()
+    gelsight_monitor = GelsightMonitor(sys.argv[1], sys.argv[2])
+    time.sleep(1)
+    gelsight_monitor.record()
+    gelsight_monitor.clean()
+    time.sleep(0.5)
 

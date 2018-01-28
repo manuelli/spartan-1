@@ -3,8 +3,10 @@ import os
 import sys
 import numpy as np
 import subprocess
+import time
 
-# image processing
+# image processing 
+import cv2
 from skimage.measure import compare_ssim as ssim
 
 # ros
@@ -17,8 +19,15 @@ import spartan.utils.utils as spartanUtils
 # touch supervisor
 from touch_supervisor import TouchSupervisor
 
+# webcam_monitor
+from webcam_monitor import WebcamMonitor
 
-num_scheduled_touch = 1
+
+num_scheduled_touch = 3
+num_record = 120
+scene_sim_threshold = 0.4
+
+touch_space = np.array([[0.45, -0.35, 0.1], [0.82, 0.35, 0.5]])
 
 
 class TFWrapper(object):
@@ -40,10 +49,38 @@ class TFWrapper(object):
 
 
 def select_touch_point(idx):
+
+    return np.random.uniform(touch_space[0], touch_space[1])
+
+    '''
     if idx == 0:
         return np.array([0.61, -0.15, 0.5])
     else:
         return np.array([0.55, -0.3, 0.1])
+    '''
+
+
+def start_monitor(name, idx, num_record):
+    script_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu',
+                               'scripts', name + "_monitor.py")
+    cmd = "python " + script_name + " " + str(idx) + " " + str(num_record)
+    return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+
+def scene_been_moved(idx):
+    dir_path = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu',
+                            'data', 'webcam_rec', 'webcam_rec_' + str(idx))
+    img_0 = np.array(cv2.imread(dir_path + "/frame_0.jpg")).astype(np.float)
+    img_1 = np.array(cv2.imread(dir_path + "/frame_1.jpg")).astype(np.float)
+
+    sim = ssim(img_0, img_1, multichannel=True)
+
+    print "scene similarity:", sim
+
+    if sim < scene_sim_threshold:
+        return True
+    else:
+        return False
 
 
 def main():
@@ -55,9 +92,12 @@ def main():
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
 
     for idx in xrange(num_scheduled_touch):
+
         touchSupervisor.moveHome()
-        touchSupervisor.collectSensorDataAndFuse()
-        touchSupervisor.moveHome()
+
+        if idx == 0 or scene_been_moved(idx - 1):
+            touchSupervisor.collectSensorDataAndFuse()
+            touchSupervisor.moveHome()
 
         while True:
             touch_point = select_touch_point(idx)
@@ -71,14 +111,23 @@ def main():
             if not valid_ik:
                 continue
 
-            script_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'scripts', 'gelsight_monitor.py')
-            cmd = "python " + script_name + " " + str(idx)
-            subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            print "start webcam monitor"
+            webcam_proc = start_monitor('webcam', idx, num_record)
+            print "start gelsight monitor"
+            gelsight_proc = start_monitor('gelsight', idx, num_record)
+
+            time.sleep(0.5)
             touchSupervisor.attemptTouch()
 
             break
 
         touchSupervisor.moveHome()
+
+        gelsight_proc.wait()
+        print "gelsight monitor stopped"
+        webcam_proc.wait()
+        print "webcam monitor stopped"
+
 
 
 if __name__ == "__main__":
