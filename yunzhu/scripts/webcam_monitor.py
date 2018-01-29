@@ -34,14 +34,16 @@ class WebcamMonitor(object):
         os.system("mkdir -p " + self.rec_dir_name)
 
         self.rec_name = os.path.join(self.rec_dir_name, 'webcam_rec_' +
-                                     str(datetime.datetime.now()))
+                                     str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter(self.rec_name + '.avi', fourcc, 20.0, (1280, 720))
+        self.out = cv2.VideoWriter(self.rec_name + '.avi', fourcc, 20.0, (800, 600))
 
 
     def record(self):
         for i in xrange(self.num_record):
             ret, frame = self.cap.read()
+            frame = frame[69:69+600, 234:234+800, :]
+
             self.out.write(frame)
 
             if i == 0:

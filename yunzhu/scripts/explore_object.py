@@ -23,9 +23,9 @@ from touch_supervisor import TouchSupervisor
 from webcam_monitor import WebcamMonitor
 
 
-num_scheduled_touch = 3
-num_record = 120
-scene_sim_threshold = 0.4
+num_scheduled_touch = 1
+num_record = 140
+scene_sim_threshold = 0.45
 
 touch_space = np.array([[0.45, -0.35, 0.1], [0.82, 0.35, 0.5]])
 

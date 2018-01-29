@@ -5,7 +5,7 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 
-diff_threshold = 4
+diff_threshold = 3.5
 
 
 class ExternalForceMonitor(object):
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     # wait for a while before start monitoring the external force due to the
     # influence of the shunk haven't been accounted in the model
-    time.sleep(2.0)
+    time.sleep(2.5)
 
     rospy.init_node('external_force_monitor')
     external_force_monitor = ExternalForceMonitor(diff_threshold)

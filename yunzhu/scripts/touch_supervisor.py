@@ -344,6 +344,16 @@ class TouchSupervisor(object):
 
         return result
 
+    def touchFrameXAxisInThreshold(self, touchFrame):
+        touchFrameXAxis = touchFrame.TransformVector(1, 0, 0)
+        params = self.touchParams
+        touchNominalDirectionX = params['touch']['touch_nominal_direction_x']
+        proj = np.dot(touchFrameXAxis, touchNominalDirectionX)
+        print "Projection on -z axis:", proj
+        if proj < 0.7:
+            return False
+        return True
+
     def processGenerateTouchesResult(self, result):
         print "num scored_touches = ", len(result.scored_touches)
         if len(result.scored_touches) == 0:
@@ -354,13 +364,13 @@ class TouchSupervisor(object):
         rospy.loginfo("-------- top touch score = %.3f", self.topTouch.score)
         self.touchFrame = spartanUtils.transformFromROSPoseMsg(self.topTouch.pose.pose)
         self.rotateTouchFrameToAlignWithNominal(self.touchFrame)
-        return True
+        return self.touchFrameXAxisInThreshold(self.touchFrame)
 
     def rotateTouchFrameToAlignWithNominal(self, touchFrame):
         touchFrameZAxis = touchFrame.TransformVector(0, 0, 1)
         params = self.touchParams
-        touchNominalDirection = params['touch']['touch_nominal_direction']
-        if (np.dot(touchFrameZAxis, touchNominalDirection) < 0):
+        touchNominalDirectionZ = params['touch']['touch_nominal_direction_z']
+        if (np.dot(touchFrameZAxis, touchNominalDirectionZ) < 0):
             touchFrame.PreMultiply()
             touchFrame.RotateX(180)
 

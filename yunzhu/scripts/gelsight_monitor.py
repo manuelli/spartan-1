@@ -34,7 +34,7 @@ class GelsightMonitor(object):
         os.system("mkdir -p " + rec_dir_name)
 
         rec_name = os.path.join(rec_dir_name, 'gelsight_rec_' +
-                                str(datetime.datetime.now()))
+                                str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.out = cv2.VideoWriter(rec_name + '.avi', fourcc, 20.0, (960, 720))
 
