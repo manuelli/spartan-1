@@ -21,7 +21,7 @@ class WebcamMonitor(object):
     def __init__(self, idx, num_record):
         self.num_record = int(num_record)
         self.idx = idx
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
         self.cap.set(3, 1280)
         self.cap.set(4, 720)
 
@@ -33,13 +33,12 @@ class WebcamMonitor(object):
                                     'webcam_rec_' + self.idx)
         os.system("mkdir -p " + self.rec_dir_name)
 
+    def record(self):
         self.rec_name = os.path.join(self.rec_dir_name, 'webcam_rec_' +
                                      str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.out = cv2.VideoWriter(self.rec_name + '.avi', fourcc, 20.0, (800, 600))
 
-
-    def record(self):
         for i in xrange(self.num_record):
             ret, frame = self.cap.read()
             frame = frame[69:69+600, 234:234+800, :]
@@ -60,7 +59,7 @@ class WebcamMonitor(object):
 
 if __name__ == '__main__':
     webcam_monitor = WebcamMonitor(sys.argv[1], sys.argv[2])
-    time.sleep(1)
+    time.sleep(0.8)
     webcam_monitor.record()
     webcam_monitor.clean()
     time.sleep(0.5)

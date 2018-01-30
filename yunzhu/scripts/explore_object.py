@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import subprocess
 import time
+import datetime
 
 # image processing 
 import cv2
@@ -12,6 +13,7 @@ from skimage.measure import compare_ssim as ssim
 # ros
 import rospy
 import tf2_ros
+import rosbag
 
 # spartan
 import spartan.utils.utils as spartanUtils
@@ -23,11 +25,11 @@ from touch_supervisor import TouchSupervisor
 from webcam_monitor import WebcamMonitor
 
 
-num_scheduled_touch = 1
-num_record = 140
+num_scheduled_touch = 10
+num_record = 150
 scene_sim_threshold = 0.45
 
-touch_space = np.array([[0.45, -0.35, 0.1], [0.82, 0.35, 0.5]])
+touch_space = np.array([[0.48, -0.35, 0.03], [0.82, 0.35, 0.3]])
 
 
 class TFWrapper(object):
@@ -83,6 +85,19 @@ def scene_been_moved(idx):
         return False
 
 
+def store_point_cloud_list_msg(idx, touchSupervisor):
+    pointCloudListMsg = touchSupervisor.pointCloudListMsg
+    dir_path = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'data',
+                            'point_cloud_rec')
+    os.system('mkdir -p ' + dir_path)
+
+    bag = rosbag.Bag(os.path.join(dir_path, 'point_cloud_rec_' +
+                                  str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")) + '.bag'),
+                     'w')
+    bag.write('pointCloudListMsg', pointCloudListMsg)
+    bag.close()
+
+
 def main():
     rospy.init_node('explore_object_node')
 
@@ -98,6 +113,7 @@ def main():
         if idx == 0 or scene_been_moved(idx - 1):
             touchSupervisor.collectSensorDataAndFuse()
             touchSupervisor.moveHome()
+            store_point_cloud_list_msg(idx, touchSupervisor)
 
         while True:
             touch_point = select_touch_point(idx)
@@ -111,12 +127,14 @@ def main():
             if not valid_ik:
                 continue
 
+            print "start pose monitor"
+            pose_proc = start_monitor('pose', idx, num_record * 7)
             print "start webcam monitor"
             webcam_proc = start_monitor('webcam', idx, num_record)
             print "start gelsight monitor"
             gelsight_proc = start_monitor('gelsight', idx, num_record)
 
-            time.sleep(0.5)
+            time.sleep(2.5)
             touchSupervisor.attemptTouch()
 
             break
@@ -127,6 +145,8 @@ def main():
         print "gelsight monitor stopped"
         webcam_proc.wait()
         print "webcam monitor stopped"
+        pose_proc.wait()
+        print 'pose monitor stopped'
 
 
 

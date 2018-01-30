@@ -288,11 +288,12 @@ class TouchSupervisor(object):
         try:
             capture_scene_and_fuse = rospy.ServiceProxy('capture_scene_and_fuse', CaptureSceneAndFuse)
             resp1 = capture_scene_and_fuse()
-            plyFilename = resp1.pointcloud_filepath
+            bagFilename = resp1.pointcloud_filepath
         except rospy.ServiceException, e:
             print "Service call failed: %s" % e
 
-        pointCloudWithTransformMsg.point_cloud = self.convert_ply_to_pointcloud2(PlyData.read(plyFilename))
+        pointCloudWithTransformMsg.point_cloud = self.convert_ply_to_pointcloud2(PlyData.read(bagFilename + '.ply'))
+        os.system('rm ' + bagFilename)
         pointCloudListMsg.point_cloud_list.append(pointCloudWithTransformMsg)
 
         self.pointCloudListMsg = pointCloudListMsg
