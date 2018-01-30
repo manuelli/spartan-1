@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     # wait for a while before start monitoring the external force due to the
     # influence of the shunk haven't been accounted in the model
-    time.sleep(2.5)
+    time.sleep(3)
 
     rospy.init_node('external_force_monitor')
     external_force_monitor = ExternalForceMonitor(diff_threshold)
