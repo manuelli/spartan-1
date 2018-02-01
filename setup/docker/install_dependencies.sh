@@ -17,6 +17,7 @@ apt install --no-install-recommends \
   usbutils \
   dialog \
   python-pip \
+  streamer
 
 # these following three are ElasticFusion dependencies
 apt install --no-install-recommends \
@@ -31,9 +32,4 @@ pip install numpy scipy pyassimp pyglet
 
 # Tools for process plyfile
 pip install plyfile
-
-# python image processing
-pip install scikit-image
-pip install imutils
-
 

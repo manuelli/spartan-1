@@ -50,18 +50,19 @@ def main(idx, num_record):
     # file operation
     rec_dir_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'data', 'pose_rec')
     os.system("mkdir -p " + rec_dir_name)
-    rec_name = os.path.join(rec_dir_name, 'pose_rec_' + idx)
+    rec_name = os.path.join(rec_dir_name, 'pose_rec_' + idx + '.txt')
     fout = open(rec_name, "w")
 
     rospy.sleep(0.5)
 
     for i in xrange(int(num_record)):
         transform = getRgbOpticalFrameToTouchFrameTransform(tfBuffer, touchFrameName, rgbOpticalFrameName)
-        fout.write(str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")) + " ")
+        txt = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")) + " "
         translation = transform.transform.translation
         rotation = transform.transform.rotation
-        fout.write(str(translation.x) + "," + str(translation.y) + "," + str(translation.z) + ",")
-        fout.write(str(rotation.x) + "," + str(rotation.y) + "," + str(rotation.z) + "," + str(rotation.w) + "\n")
+        txt += str(translation.x) + "," + str(translation.y) + "," + str(translation.z) + ","
+        txt += str(rotation.x) + "," + str(rotation.y) + "," + str(rotation.z) + "," + str(rotation.w)
+        fout.write(txt + '\n')
         rospy.sleep(0.01)
 
     fout.close()

@@ -8,10 +8,6 @@ import datetime
 # opencv
 import cv2
 
-# ROS
-import rospy
-import std_msgs.msg
-
 # spartan
 import spartan.utils.utils as spartanUtils
 
@@ -21,9 +17,12 @@ class GelsightMonitor(object):
     def __init__(self, idx, num_record):
         self.num_record = int(num_record)
         self.idx = idx
-        self.cap = cv2.VideoCapture(1)
-        self.cap.set(3, 960)
-        self.cap.set(4, 720)
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(3, 800)
+        self.cap.set(4, 600)
+        # self.cap.set(cv2.CAP_PROP_FPS, 20)
+
+        print self.cap.get(cv2.CAP_PROP_FPS)
 
         if(self.cap.isOpened() == False):
             print "Unable to read GelSight feed"
@@ -37,11 +36,16 @@ class GelsightMonitor(object):
         rec_name = os.path.join(self.rec_dir_name, 'gelsight_rec_' +
                                 str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter(rec_name + '.avi', fourcc, 20.0, (960, 720))
+        self.out = cv2.VideoWriter(rec_name + '.avi', fourcc, 20.0, (800, 600))
+
+        print 'gelsight', str(datetime.datetime.now())
 
         for i in xrange(self.num_record):
+            print str(datetime.datetime.now())
             ret, frame = self.cap.read()
             self.out.write(frame)
+
+        print 'gelsight', str(datetime.datetime.now())
 
 
     def clean(self):

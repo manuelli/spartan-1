@@ -8,7 +8,6 @@ import datetime
 
 # image processing 
 import cv2
-from skimage.measure import compare_ssim as ssim
 
 # ros
 import rospy
@@ -25,11 +24,12 @@ from touch_supervisor import TouchSupervisor
 from webcam_monitor import WebcamMonitor
 
 
-num_scheduled_touch = 10
-num_record = 150
+num_scheduled_touch = 40
+record_time = 16
 scene_sim_threshold = 0.45
+rescan_cycle = 20
 
-touch_space = np.array([[0.48, -0.35, 0.03], [0.82, 0.35, 0.3]])
+touch_space = np.array([[0.48, -0.35, 0.03], [0.82, 0.35, 0.2]])
 
 
 class TFWrapper(object):
@@ -69,6 +69,26 @@ def start_monitor(name, idx, num_record):
     return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 
+def start_streamer(name, idx, record_time, src, height, width, fps):
+    cmd = 'streamer -c ' + str(src)
+    cmd += ' -t 0:' + str(record_time)
+    cmd += ' -s ' + str(width) + "x" + str(height)
+    cmd += ' -r ' + str(fps)
+    cmd += ' -f jpeg'
+
+    dir_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu',
+                            'data', name + '_rec')
+    os.system("mkdir -p " + dir_name)
+
+    rec_name = os.path.join(dir_name, 'webcam_rec_' + str(idx) + '_' +
+                            str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")) + '.avi')
+
+    cmd += ' -o ' + rec_name
+
+    return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+
+
+'''
 def scene_been_moved(idx):
     dir_path = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu',
                             'data', 'webcam_rec', 'webcam_rec_' + str(idx))
@@ -83,6 +103,7 @@ def scene_been_moved(idx):
         return True
     else:
         return False
+'''
 
 
 def store_point_cloud_list_msg(idx, touchSupervisor):
@@ -106,11 +127,13 @@ def main():
 
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
 
-    for idx in xrange(num_scheduled_touch):
+    start_idx = int(sys.argv[1])
+
+    for idx in xrange(start_idx, start_idx + num_scheduled_touch):
 
         touchSupervisor.moveHome()
 
-        if idx == 0 or scene_been_moved(idx - 1):
+        if idx == start_idx or idx % rescan_cycle == 0:
             touchSupervisor.collectSensorDataAndFuse()
             touchSupervisor.moveHome()
             store_point_cloud_list_msg(idx, touchSupervisor)
@@ -128,13 +151,14 @@ def main():
                 continue
 
             print "start pose monitor"
-            pose_proc = start_monitor('pose', idx, num_record * 7)
-            print "start webcam monitor"
-            webcam_proc = start_monitor('webcam', idx, num_record)
-            print "start gelsight monitor"
-            gelsight_proc = start_monitor('gelsight', idx, num_record)
+            pose_proc = start_monitor('pose', idx, record_time * 110)
+            time.sleep(3)
 
-            time.sleep(2.5)
+            print "start webcam monitor"
+            webcam_proc = start_streamer('webcam', idx, record_time, '/dev/video1', 720, 1280, 24)
+            print "start gelsight monitor"
+            gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video0', 720, 960, 24)
+
             touchSupervisor.attemptTouch()
 
             break

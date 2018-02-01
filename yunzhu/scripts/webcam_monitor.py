@@ -8,10 +8,6 @@ import datetime
 # opencv
 import cv2
 
-# ROS
-import rospy
-import std_msgs.msg
-
 # spartan
 import spartan.utils.utils as spartanUtils
 
@@ -21,9 +17,11 @@ class WebcamMonitor(object):
     def __init__(self, idx, num_record):
         self.num_record = int(num_record)
         self.idx = idx
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(3, 1280)
-        self.cap.set(4, 720)
+        self.cap = cv2.VideoCapture(1)
+        self.cap.set_format(1920, 1080, fourcc='MJPG')
+
+        print self.cap.get(cv2.CAP_PROP_FORMAT)
+        print self.cap.get(cv2.CAP_PROP_FPS)
 
         if(self.cap.isOpened() == False):
             print "Unable to read GelSight feed"
@@ -37,11 +35,15 @@ class WebcamMonitor(object):
         self.rec_name = os.path.join(self.rec_dir_name, 'webcam_rec_' +
                                      str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")))
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter(self.rec_name + '.avi', fourcc, 20.0, (800, 600))
+        self.out = cv2.VideoWriter(self.rec_name + '.avi', fourcc, 30.0, (1920,
+                                                                         1080))
+
+        print 'webcam', str(datetime.datetime.now())
 
         for i in xrange(self.num_record):
             ret, frame = self.cap.read()
-            frame = frame[69:69+600, 234:234+800, :]
+            print str(datetime.datetime.now())
+            # frame = frame[60:60+600, 240:240+800, :]
 
             self.out.write(frame)
 
@@ -49,6 +51,8 @@ class WebcamMonitor(object):
                 cv2.imwrite(self.rec_dir_name + "/frame_0.jpg", frame)
             if i == self.num_record - 1:
                 cv2.imwrite(self.rec_dir_name + "/frame_1.jpg", frame)
+
+        print 'webcam', str(datetime.datetime.now()), self.num_record
 
 
     def clean(self):
