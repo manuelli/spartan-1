@@ -25,7 +25,7 @@ from webcam_monitor import WebcamMonitor
 
 
 num_scheduled_touch = 40
-record_time = 12
+record_time = 11
 scene_sim_threshold = 0.45
 rescan_cycle = 20
 
@@ -119,6 +119,21 @@ def store_point_cloud_list_msg(idx, touchSupervisor):
     bag.close()
 
 
+def process_results_to_touch_soft_object(result):
+    if len(result.scored_touches) == 0:
+        return result
+    pose = result.scored_touches[0].pose.pose
+
+    pose.position.z = 0.05
+    pose.orientation.x = 0
+    pose.orientation.y = 0.7071068
+    pose.orientation.z = 0
+    pose.orientation.w = 0.7071068
+
+    result.scored_touches[0].pose.pose = pose
+    return result
+
+
 def main():
     rospy.init_node('explore_object_node')
 
@@ -128,6 +143,7 @@ def main():
     touchSupervisor = TouchSupervisor.makeDefault(tfBuffer=tfBuffer)
 
     start_idx = int(sys.argv[1])
+    soft_object = bool(int(sys.argv[2]))
 
     for idx in xrange(start_idx, start_idx + num_scheduled_touch):
 
@@ -142,6 +158,9 @@ def main():
             touch_point = select_touch_point(idx)
             valid_touch_frame = touchSupervisor.requestTouch(touch_point)
             result = touchSupervisor.waitForGenerateTouchesResult()
+
+            if soft_object:
+                 result = process_results_to_touch_soft_object(result)
 
             find_touch = touchSupervisor.processGenerateTouchesResult(result)
             if not find_touch:
