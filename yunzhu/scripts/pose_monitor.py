@@ -45,7 +45,7 @@ def main(idx, num_record):
     tfBuffer = tfWrapper.getBuffer()
 
     touchFrameName = 'base'
-    rgbOpticalFrameName = 'camera_1112170110_rgb_optical_frame'
+    rgbOpticalFrameName = 'camera_carmine_1_rgb_optical_frame'
 
     # file operation
     rec_dir_name = os.path.join(spartanUtils.getSpartanSourceDir(), 'yunzhu', 'data', 'pose_rec')

@@ -25,7 +25,7 @@ from webcam_monitor import WebcamMonitor
 
 
 num_scheduled_touch = 40
-record_time = 16
+record_time = 12
 scene_sim_threshold = 0.45
 rescan_cycle = 20
 
@@ -131,12 +131,12 @@ def main():
 
     for idx in xrange(start_idx, start_idx + num_scheduled_touch):
 
-        touchSupervisor.moveHome()
-
         if idx == start_idx or idx % rescan_cycle == 0:
-            touchSupervisor.collectSensorDataAndFuse()
             touchSupervisor.moveHome()
+            touchSupervisor.collectSensorDataAndFuse()
             store_point_cloud_list_msg(idx, touchSupervisor)
+
+        touchSupervisor.moveTouchReady()
 
         while True:
             touch_point = select_touch_point(idx)
@@ -159,11 +159,13 @@ def main():
             print "start gelsight monitor"
             gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video0', 720, 960, 24)
 
+            time.sleep(0.5)
+
             touchSupervisor.attemptTouch()
 
             break
 
-        touchSupervisor.moveHome()
+        touchSupervisor.moveTouchReady()
 
         gelsight_proc.wait()
         print "gelsight monitor stopped"

@@ -54,7 +54,7 @@ class TFWrapper(object):
 
 class TouchSupervisor(object):
 
-    def __init__(self, touchParamsFile=None, cameraSerialNumber=1112170110, tfBuffer=None):
+    def __init__(self, touchParamsFile=None, cameraSerialNumber='carmine_1', tfBuffer=None):
         self.touchParamsFile = touchParamsFile
         self.reloadParams()
         self.cameraSerialNumber = cameraSerialNumber
@@ -91,7 +91,7 @@ class TouchSupervisor(object):
         self.touchToIiwaLinkEE = spartanUtils.transformFromPose(params['touch']['touch_to_ee'])
         self.iiwaLinkEEToTouchFrame = self.touchToIiwaLinkEE.GetLinearInverse()
 
-        pos = [-0.15, 0, 0]
+        pos = [-0.10, 0, 0]
         quat = [1, 0, 0, 0]
         self.preTouchToTouchTransform = transformUtils.transformFromPose(pos, quat)
 
@@ -435,6 +435,11 @@ class TouchSupervisor(object):
         rospy.loginfo("moving home")
         homePose = self.touchParams['poses']['scan_back']
         self.robotService.moveToJointPosition(homePose, maxJointDegreesPerSecond=self.touchParams['speed']['nominal'])
+
+    def moveTouchReady(self):
+        rospy.loginfo("moving touch ready")
+        readyPose = self.touchParams['poses']['above_table_pre_touch']
+        self.robotService.moveToJointPosition(readyPose, maxJointDegreesPerSecond=self.touchParams['speed']['nominal'])
 
     def exploreObject(self, homePose, touchPoses):
         homeJointPosition = self.getJointPositions(homePose)
