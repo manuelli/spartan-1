@@ -27,9 +27,9 @@ from webcam_monitor import WebcamMonitor
 num_scheduled_touch = 40
 record_time = 11
 scene_sim_threshold = 0.45
-rescan_cycle = 20
+rescan_cycle = 40
 
-touch_space = np.array([[0.48, -0.35, 0.03], [0.82, 0.35, 0.2]])
+touch_space = np.array([[0.50, -0.35, 0.03], [0.84, 0.35, 0.2]])
 
 
 class TFWrapper(object):
@@ -123,6 +123,11 @@ def process_results_to_touch_soft_object(result):
     if len(result.scored_touches) == 0:
         return result
     pose = result.scored_touches[0].pose.pose
+    params = result.scored_touches[0].params
+
+    touchFrameXAxis = spartanUtils.transformFromROSPoseMsg(pose).TransformVector(1, 0, 0)
+    pose.position.x += touchFrameXAxis[0] * params.finger_depth
+    pose.position.y += touchFrameXAxis[1] * params.finger_depth
 
     pose.position.z = 0.05
     pose.orientation.x = 0
@@ -147,7 +152,7 @@ def main():
 
     for idx in xrange(start_idx, start_idx + num_scheduled_touch):
 
-        if idx == start_idx or idx % rescan_cycle == 0:
+        if idx == start_idx or (idx - start_idx) % rescan_cycle == 0:
             touchSupervisor.moveHome()
             touchSupervisor.collectSensorDataAndFuse()
             store_point_cloud_list_msg(idx, touchSupervisor)
@@ -160,7 +165,7 @@ def main():
             result = touchSupervisor.waitForGenerateTouchesResult()
 
             if soft_object:
-                 result = process_results_to_touch_soft_object(result)
+                result = process_results_to_touch_soft_object(result)
 
             find_touch = touchSupervisor.processGenerateTouchesResult(result)
             if not find_touch:
@@ -174,9 +179,9 @@ def main():
             time.sleep(3)
 
             print "start webcam monitor"
-            webcam_proc = start_streamer('webcam', idx, record_time, '/dev/video1', 720, 1280, 24)
+            webcam_proc = start_streamer('webcam', idx, record_time, '/dev/video0', 720, 1280, 24)
             print "start gelsight monitor"
-            gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video0', 720, 960, 24)
+            gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video1', 720, 960, 24)
 
             time.sleep(0.5)
 
