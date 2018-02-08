@@ -5,7 +5,8 @@ import std_msgs.msg
 import sensor_msgs.msg
 
 
-diff_threshold = 4.2
+# diff_threshold = 4.2  # for soft objects
+diff_threshold = 3.6
 
 
 class ExternalForceMonitor(object):

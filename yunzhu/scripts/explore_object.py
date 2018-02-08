@@ -24,12 +24,12 @@ from touch_supervisor import TouchSupervisor
 from webcam_monitor import WebcamMonitor
 
 
-num_scheduled_touch = 40
+num_scheduled_touch = 50
 record_time = 11
 scene_sim_threshold = 0.45
-rescan_cycle = 40
+rescan_cycle = 50
 
-touch_space = np.array([[0.50, -0.35, 0.03], [0.84, 0.35, 0.2]])
+touch_space = np.array([[0.50, -0.33, 0.03], [0.78, 0.33, 0.2]])
 
 
 class TFWrapper(object):
@@ -179,9 +179,9 @@ def main():
             time.sleep(3)
 
             print "start webcam monitor"
-            webcam_proc = start_streamer('webcam', idx, record_time, '/dev/video0', 720, 1280, 24)
+            webcam_proc = start_streamer('webcam', idx, record_time, '/dev/video1', 720, 1280, 24)
             print "start gelsight monitor"
-            gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video1', 720, 960, 24)
+            gelsight_proc = start_streamer('gelsight', idx, record_time, '/dev/video0', 720, 960, 24)
 
             time.sleep(0.5)
 
