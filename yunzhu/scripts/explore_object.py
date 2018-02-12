@@ -24,7 +24,7 @@ from touch_supervisor import TouchSupervisor
 from webcam_monitor import WebcamMonitor
 
 
-num_scheduled_touch = 50
+num_scheduled_touch = 100
 record_time = 11
 scene_sim_threshold = 0.45
 rescan_cycle = 50

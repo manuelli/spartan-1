@@ -351,7 +351,7 @@ class TouchSupervisor(object):
         touchNominalDirectionX = params['touch']['touch_nominal_direction_x']
         proj = np.dot(touchFrameXAxis, touchNominalDirectionX)
         print "Projection on -z axis:", proj
-        if proj < 0.9:
+        if proj < 0.93:
             return False
         return True
 
